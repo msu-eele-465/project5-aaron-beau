@@ -123,14 +123,14 @@ int unlock_keypad(void){
         last_patt = key - '0';
     } else {
         switch (key) {
-            case 'A': last_patt = 10; break;
-            case 'B': last_patt = 11; break;
-            case 'C': last_patt = 12; break;
+            case 'A': last_patt = 0xA; break;
+            case 'B': last_patt = 0xB; break;
+            case 'C': last_patt = 0xC; break;
             case 'D': 
                 last_patt = 0;  // Reset pattern when locking
-                return 13;  // Immediately return 13 to signal relock
-            case '*': last_patt = 14; break;
-            case '#': last_patt = 15; break;
+                return 0xD;  // Immediately return 13 to signal relock
+            case '*': last_patt = 0x2A; break;
+            case '#': last_patt = 0x23; break;
             default: break;  // Ignore invalid keys
         }
     }
