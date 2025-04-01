@@ -1,84 +1,106 @@
-/* --COPYRIGHT--,BSD_EX
- * Copyright (c) 2014, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *******************************************************************************
- *
- *                       MSP430 CODE EXAMPLE DISCLAIMER
- *
- * MSP430 code examples are self-contained low-level programs that typically
- * demonstrate a single peripheral function or device feature in a highly
- * concise manner. For this the code may rely on the device's power-on default
- * register values and settings such as the clock configuration and care must
- * be taken when combining code from several examples to avoid potential side
- * effects. Also see www.ti.com/grace for a GUI- and www.ti.com/msp430ware
- * for an API functional library-approach to peripheral configuration.
- *
- * --/COPYRIGHT--*/
-//******************************************************************************
-//  MSP430FR231x Demo - Toggle P1.0 using software
-//
-//  Description: Toggle P1.0 every 0.1s using software.
-//  By default, FR231x select XT1 as FLL reference.
-//  If XT1 is present, the PxSEL(XIN & XOUT) needs to configure.
-//  If XT1 is absent, switch to select REFO as FLL reference automatically.
-//  XT1 is considered to be absent in this example.
-//  ACLK = default REFO ~32768Hz, MCLK = SMCLK = default DCODIV ~1MHz.
-//
-//           MSP430FR231x
-//         ---------------
-//     /|\|               |
-//      | |               |
-//      --|RST            |
-//        |           P1.0|-->LED
-//
-//   Darren Lu
-//   Texas Instruments Inc.
-//   July 2015
-//   Built with IAR Embedded Workbench v6.30 & Code Composer Studio v6.1 
-//******************************************************************************
+
 #include <msp430.h>
+#include "lcd_control.h"
+
+const char widnow_size[3] = {0b01001110, 0b00111101};
+const char set_window[15] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110111, 0b01101001, 0b01101110, 0b01100100, 0b01101111, 0b01110111, 0b00010000, 0b01110011, 0b01101001, 0b01111010, 0b01100101};
+const char set_pattern[11] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110000, 0b01100001, 0b01110100, 0b01110100, 0b01100101, 0b01110010, 0b01101110};
+const char pattern_static[6] = {0b01110011, 0b01110100, 0b01100001, 0b01110100, 0b01101001, 0b01100011};
+const char pattern_toggle[6] = {0b01110100, 0b01101111, 0b01100111, 0b01100111, 0b01101100, 0b01100101};
+const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100011, 0b01101111, 0b01110101, 0b01101110, 0b01110100, 0b01100101, 0b01110010};
+const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
+                 
+                        
+unsigned int i;
+int status;
+int RXDATA = 0x6;
 
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
 
-    P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
-    P1DIR |= BIT0;                          // Set P1.0 to output direction
+    P1OUT &= ~BIT1;                         // Clear P1.0 output latch for a defined power-on state
+    P1DIR |= BIT1;                          // Set P1.0 to output direction
 
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
-
+    LCD_init();
+    LCD_setup();
     while(1)
     {
-        P1OUT ^= BIT0;                      // Toggle P1.0 using exclusive-OR
+        switch(RXDATA){
+            case 0:     break;
+
+            case 0x1:   LCD_Clear();
+                        for(i = 0; i < 6; i++){
+                            LCD_write(pattern_static[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+
+            case 0x2:   LCD_Clear();
+                        for(i = 0; i < 6; i++){
+                            LCD_write(pattern_toggle[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+            
+            case 0x3:   LCD_Clear();
+                        for(i = 0; i < 10; i++){
+                            LCD_write(pattern_up_counter[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+
+            case 0x4:   LCD_Clear();
+                        for(i = 0; i < 10; i++){
+                            LCD_write(pattern_up_counter[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+
+            case 0x5:   LCD_Clear();
+                        for(i = 0; i < 15; i++){
+                            LCD_write(set_window[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+
+            case 0x6:   LCD_Clear();
+                        for(i = 0; i < 11; i++){
+                            LCD_write(set_pattern[i]);
+                        }
+                        RXDATA = 0;
+                        break;
+                    
+            default:    break;
+        }              
+
+        
+
+        P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
         __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
     }
+}
+//--------- I2C Receive ISR (Handles Incoming Data) ---------------------------
+/* ISR triggers upon start condition from I2C bus and receives sent data from
+ * master 
+ */
+#pragma vector = EUSCI_B0_VECTOR
+__interrupt void EUSCI_B0_ISR(void)
+{
+    switch (__even_in_range(UCB0IV, 0x1E)) {
+        case 0x16:  // UCRXIFG0: Byte received
+            RXDATA = UCB0RXBUF;  // Read received byte
+            status=1;
+            break;
+
+        case 0x12:  // UCSTPIFG: Stop condition detected
+            UCB0IFG &= ~UCSTPIFG;  // Clear STOP flag
+            break;
+
+        default:
+            break;
+    }
+    
 }
