@@ -12,7 +12,6 @@ const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100
 const char n_size[10] = {0b00110001, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
                         
 unsigned int i;
-int status;
 int RXDATA = 0;
 int pattern_set = 0;
 int window_size_set = 0;
@@ -31,49 +30,9 @@ int main(void)
     while(1)
     {
         
-        while(pattern_set == 0){
-        switch(RXDATA){
-            case 0:     break;
-
-            case 0x1:   LCD_Clear();
-                        for(i = 0; i < 6; i++){
-                            LCD_write(pattern_static[i]);
-                        }
-                        RXDATA = 0;
-                        break;
-
-            case 0x2:   LCD_Clear();
-                        for(i = 0; i < 6; i++){
-                            LCD_write(pattern_toggle[i]);
-                        }
-                        RXDATA = 0;
-                        break;
-            
-            case 0x3:   LCD_Clear();
-                        for(i = 0; i < 10; i++){
-                            LCD_write(pattern_up_counter[i]);
-                        }
-                        RXDATA = 0;
-                        break;
-
-            case 0x4:   LCD_Clear();
-                        for(i = 0; i < 10; i++){
-                            LCD_write(pattern_up_counter[i]);
-                        }
-                        RXDATA = 0;
-                        break;
-                    
-            default:    break;
-            } 
-        }  
-        while(window_size_set == 0){
-            for(i = 0; i < 2; i++){
-                LCD_write(window_size[i]);
-            }
-            LCD_write(n_size[RXDATA]);
-            window_size_set =1;
-            
-        }         
+        
+       
+                 
 
         
 
@@ -91,7 +50,7 @@ __interrupt void EUSCI_B0_ISR(void)
     switch (__even_in_range(UCB0IV, 0x1E)) {
         case 0x16:  // UCRXIFG0: Byte received
             RXDATA = UCB0RXBUF;  // Read received byte
-            status=1;
+            
             break;
 
         case 0x12:  // UCSTPIFG: Stop condition detected
