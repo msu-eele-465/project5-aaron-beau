@@ -2,18 +2,20 @@
 #include <msp430.h>
 #include "lcd_control.h"
 
-const char widnow_size[3] = {0b01001110, 0b00111101};
+const char widnow_size[2] = {0b01001110, 0b00111101};
 const char set_window[15] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110111, 0b01101001, 0b01101110, 0b01100100, 0b01101111, 0b01110111, 0b00010000, 0b01110011, 0b01101001, 0b01111010, 0b01100101};
 const char set_pattern[11] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110000, 0b01100001, 0b01110100, 0b01110100, 0b01100101, 0b01110010, 0b01101110};
 const char pattern_static[6] = {0b01110011, 0b01110100, 0b01100001, 0b01110100, 0b01101001, 0b01100011};
 const char pattern_toggle[6] = {0b01110100, 0b01101111, 0b01100111, 0b01100111, 0b01101100, 0b01100101};
 const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100011, 0b01101111, 0b01110101, 0b01101110, 0b01110100, 0b01100101, 0b01110010};
 const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
-                 
+const char n_size[10] = {0b00110001, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
                         
 unsigned int i;
 int status;
-int RXDATA = 0x6;
+int RXDATA = 0;
+int pattern_set = 0;
+int window_size_set = 0;
 
 int main(void)
 {
@@ -28,6 +30,8 @@ int main(void)
     LCD_setup();
     while(1)
     {
+        
+        while(pattern_set == 0){
         switch(RXDATA){
             case 0:     break;
 
@@ -58,23 +62,18 @@ int main(void)
                         }
                         RXDATA = 0;
                         break;
-
-            case 0x5:   LCD_Clear();
-                        for(i = 0; i < 15; i++){
-                            LCD_write(set_window[i]);
-                        }
-                        RXDATA = 0;
-                        break;
-
-            case 0x6:   LCD_Clear();
-                        for(i = 0; i < 11; i++){
-                            LCD_write(set_pattern[i]);
-                        }
-                        RXDATA = 0;
-                        break;
                     
             default:    break;
-        }              
+            } 
+        }  
+        while(window_size_set == 0){
+            for(i = 0; i < 2; i++){
+                LCD_write(window_size[i]);
+            }
+            LCD_write(n_size[RXDATA]);
+            window_size_set =1;
+            
+        }         
 
         
 
