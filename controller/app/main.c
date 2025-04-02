@@ -1,23 +1,15 @@
 /*-----------------------------------------------------------------------------
-* Project 4: Multi MSP with LED bar and LCD Display
+* Project 5: Reading an Analog Temperature Sensor with an ADC
 * Aaron Foster & Beau Coburn
 * EELE 465
-* 3/25/25
+* 4/3/25
 * 
 * Main file for the controller msp. receives
 * a character from the keypad to unlock. Later receives
 * characters from the keypad and transmits commands to 
-* the peripherals. 
+* the peripherals. Also reads LM19 temperature sensor and sends output to 
+* LCD microcontroller
 *///----------------------------------------------------------------------------
-
-
-/*
-Project 4: Multi MSP with LED bar and LCD Display
-Aaron Foster & Beau Coburn
-EELE 465
-3/27/25
-Description
-*/
 
 
 
@@ -54,7 +46,7 @@ int main(void) {
 controller_init();
 controller_i2c_init();
 
-    PM5CTL0 &= ~LOCKLPM5;  // Disable GPIO power-on default high-impedance mode
+    PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
 //------------------------ End Initialization ----------------------------------
 
 /* 
