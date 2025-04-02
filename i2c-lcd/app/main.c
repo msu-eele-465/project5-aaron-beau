@@ -20,11 +20,11 @@ const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110
                         
 unsigned int i;
 int user_mode;
-int RXDATA;
+volatile int RXDATA;
 int wait;
 int user_size = 3;
 int pattern_number = 0;
-int print_window_size = 0;
+int print_window_size = 1;
 
 
 int main(void)
@@ -58,6 +58,7 @@ int main(void)
     {
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
+        LCD_clear_first_line();
             for(i = 0; i< 15; i++){
                 LCD_write(set_window_size[i]);              //print "set window size"
             }
@@ -74,6 +75,7 @@ int main(void)
             }
         //USER MODE SELECT PATTERN
         else if(user_mode == 0xB){                          //Pattern select operation
+        LCD_clear_first_line();
             for(i = 0; i < 11; i++){                        
                 LCD_write(set_pattern[i]);                  //print "set pattern"
             }
@@ -88,25 +90,29 @@ int main(void)
         }
         //DISPLAY PATTERN NAME ON FIRST LINE
         switch(pattern_number){
-            case 0x1:   for(i = 0; i < 6; i++){
+            case 0x1:   LCD_clear_first_line();
+                        for(i = 0; i < 6; i++){
                         LCD_write(pattern_static[i]);       //print "static"
                         }
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x2:   for(i = 0; i < 6; i++){
+            case 0x2:   LCD_clear_first_line();
+                        for(i = 0; i < 6; i++){
                         LCD_write(pattern_toggle[i]);       //print "toggle"
                         }
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x3:   for(i = 0; i < 10; i++){
+            case 0x3:   LCD_clear_first_line();
+                        for(i = 0; i < 10; i++){
                         LCD_write(pattern_up_counter[i]);   //print "up counter"
                         }
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x4:   for(i = 0; i < 10; i++){
+            case 0x4:   LCD_clear_first_line();
+                        for(i = 0; i < 10; i++){
                         LCD_write(pattern_in_and_out[i]);   //print "in and out"
                         }
                         pattern_number = 0;                 //clear to stop rewrite

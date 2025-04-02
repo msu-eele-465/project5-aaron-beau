@@ -157,3 +157,12 @@ void LCD_write(unsigned char message) {
     toggle_enable();                                        //Latch
     __delay_cycles(3000);                                   //Delay for execution
 }
+
+void LCD_clear_first_line(){
+    int j;
+     LCD_command(0x80);             //set cursor to first character
+     for(j = 0; j < 16; j++){
+        LCD_write(0b00010000);
+     }
+     LCD_command(0x80);
+}
