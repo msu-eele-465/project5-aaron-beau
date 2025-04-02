@@ -16,12 +16,11 @@ const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100
 //"in and out"
 const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
 //numbers 0-9
-const char n_size[11] = {0b00110000, 0b00110001, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
+const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
                         
 unsigned int i;
-int user_mode = 0xA;
-int select_output;
-int RXDATA = 0xA;
+int user_mode;
+int RXDATA;
 int wait;
 int user_size = 3;
 int pattern_number = 0;
