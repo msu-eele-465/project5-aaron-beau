@@ -105,44 +105,32 @@ int main(void)
         if (barflag) {
             barflag = 0;           // Reset flag to avoid immediate retrigger
             switch (pattspec) {
-                case 0x5:                    // Turn off all LEDs
+                case 0xD:                    // Turn off all LEDs
                     P1OUT &= ~(BIT0 | BIT7 | BIT6 | BIT5 | BIT4); 
                     P2OUT &= ~(BIT7 | BIT6 | BIT0);                
                     break;
-                case 1:                    // Static 10101010
+                case 0x1:                    // Static 10101010
                     stepnum = lightbar(stepnum, pattspec, lightbar_byte);
                     base_time = 1;
                     temp = pattspec;
                     break;
-                case 2:                    // Alternating 10101010
+                case 0x2:                    // Alternating 10101010
                     pattnum1 = lightbar(pattnum1, pattspec, lightbar_byte);
                     base_time = 3;
                     temp = pattspec;
                     break;
-                case 3:                    // Binary Counter
+                case 0x3:                    // Binary Counter
                     stepnum = lightbar(stepnum, pattspec, lightbar_byte);
                     base_time = 1;
                     temp = pattspec;
                     break;
-                case 4:                    // In n Out
+                case 0x4:                    // In n Out
                     pattnum3 = lightbar(pattnum3, pattspec, lightbar_byte);
                     base_time = 1;
                     temp = pattspec;
                     break;
-                case 16:                   // Adjust pattern timing down 0.25s
-                    time_cntl++;
-                    pattspec = temp;
-                    Received = temp;
-                    break;
-                case 17:                  // Adjust program speed up 0.25s
-                    if ((base_time + time_cntl) == 1) {
-                        pattspec = temp;  //Also prevent instability
-                        Received = temp;
-                    } else {
-                        time_cntl--;
-                        pattspec = temp;
-                        Received = temp;
-                    }
+    
+                default:    
                     break;
             }
         }
