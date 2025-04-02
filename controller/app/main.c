@@ -65,7 +65,7 @@ controller_i2c_init();
 
             ADCCTL0 |= ADCENC | ADCSC;     // Enable temp read
             __delay_cycles(1000000);       // For test
-/*
+
 //--Locked                                 // While Locked variable is set  
         while (locked == 1) {              // Set led bar off and scan keypad
             if(SetOnce==1){
@@ -84,7 +84,7 @@ controller_i2c_init();
             relock = led_pattern();
 
 /* Set packet for tx, transmit, briefly change LED to green */
-/*
+
             switch(relock){
                 case 0: UCB1I2CSA = 0x0069; Packet[0]=0x00; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
 	                    for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
@@ -110,11 +110,11 @@ controller_i2c_init();
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 10: UCB1I2CSA = 0x0069; Packet[0]=0x10; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                case 10: UCB1I2CSA = 0x0069; Packet[0]=0xA; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                          for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 11: UCB1I2CSA = 0x0069; Packet[0]=0x11; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                case 11: UCB1I2CSA = 0x0069; Packet[0]=0xB; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                          for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
@@ -129,7 +129,7 @@ controller_i2c_init();
                 default: 
                     break;
             }
-        }*/
+        }
     }
 
     return 0;
