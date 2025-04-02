@@ -9,7 +9,7 @@
 *///----------------------------------------------------------------------------
 #include <msp430.h>
 #include "intrinsics.h"
-#include "lightbar.h"
+#include "src/lightbar.h"
 #include "msp430fr2310.h"
 #include <stdint.h>
 
@@ -20,7 +20,7 @@
 //-----------------------------------------------------------------------------
 static int stepnum = 0;                     // Current step in lightbar pattern
 static int barflag = 0;                     // Flag to update lightbar state
-static int pattspec = 1;                    // Specifies the lightbar pattern
+static int pattspec = 0;                    // Specifies the lightbar pattern
 
 int pattnum1 = 0;                           // Pattern counter 1
 int pattnum3 = 0;                           // Pattern counter 3
@@ -31,9 +31,10 @@ static int time_cntl = 0;                   // Controls pattern timing
 static int base_time;                       // Base time for pattern timing
 int barcounter = 0;                         // Counter for bar updates
 static int status = 10;                     // Status indicator
+volatile int wait;
 
 //---------------------- I2C Variables ----------------------
-volatile uint8_t Received;                  // Single-byte storage for I2C reception
+volatile uint8_t Received = 0;                  // Single-byte storage for I2C reception
 //-----------------------------------------------------------
 #include <msp430fr2310.h>
 #include <stdbool.h>
@@ -98,14 +99,20 @@ int main(void)
             P1OUT &= ~BIT1;                // Turn off status LED
         }
 
-//--Update Pattern Specification from I2C
-        pattspec = Received;
 
 //--Lightbar Pattern Update Logic
+    if(Received == 0xB){
+        while(wait == 1){
+             if(Received == 1 || Received == 2 || Received == 3 || Received == 4){
+                pattspec = Received;
+                wait = 0;
+                }
+            }
+        }
         if (barflag) {
             barflag = 0;           // Reset flag to avoid immediate retrigger
             switch (pattspec) {
-                case 0xD:                    // Turn off all LEDs
+                case 0x0:                    // Turn off all LEDs
                     P1OUT &= ~(BIT0 | BIT7 | BIT6 | BIT5 | BIT4); 
                     P2OUT &= ~(BIT7 | BIT6 | BIT0);                
                     break;
@@ -132,8 +139,9 @@ int main(void)
     
                 default:    
                     break;
+                }
             }
-        }
+           
     }
 }
 
@@ -178,7 +186,9 @@ __interrupt void EUSCI_B0_ISR(void)
             Received = UCB0RXBUF;         // Read received byte
                                           // Force an ACK manually and
             UCB0CTLW0 &= ~UCTXACK;        // Ensure ACK is sent
-
+            if(Received == 0xB){
+                wait = 1;
+            }
         //-- Handle specific pattern resets if same button pressed
             if (Received == pattspec && Received == 2) {
                 pattnum1 = 0;
@@ -213,4 +223,4 @@ __interrupt void EUSCI_B0_ISR(void)
 
 }
 
-}
+

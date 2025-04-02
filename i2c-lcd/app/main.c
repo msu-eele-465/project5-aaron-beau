@@ -49,7 +49,6 @@ int main(void)
                     user_mode = 0;                          //set user mode to zero to stop reprint
                     print_window_size = 0;                  //set flag that window size can be printed
                     }
-                
                 }
             }
         //USER MODE SELECT PATTERN
@@ -95,10 +94,7 @@ int main(void)
             LCD_print(window_size, 2);          // print "N="
             LCD_write(n_size[user_size]); //print number that was entered by user
             print_window_size = 1;          //set flag that window # has been written
-        }
-
-
-        
+        }  
     }   
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
@@ -117,8 +113,8 @@ __interrupt void EUSCI_B0_ISR(void)
             RXDATA = UCB0RXBUF;  // Read received byte
 
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
-                user_mode = RXDATA;
-                wait = 1;                   //set flag to wait for second transmission
+                user_mode = RXDATA;                   //
+                wait = 1;                            //set flag to wait for second transmission
             }
             
             break;
