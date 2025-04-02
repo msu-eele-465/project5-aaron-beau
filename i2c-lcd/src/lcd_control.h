@@ -22,6 +22,7 @@ void LCD_command(unsigned char cmd);    //sends commands to screen
 void LCD_Clear();                       // clears screen
 void LCD_write(unsigned char message);  //sends charcaters to screen
 void LCD_clear_first_line();
+void LCD_print(const char *word, int length);
 
 
 #endif

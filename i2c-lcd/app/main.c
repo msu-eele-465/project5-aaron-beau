@@ -31,25 +31,6 @@ int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
 
-     //------------------------------- I2C Initialization -----------------------------    
-//--Put eUSCI_B0 into software reset to allow configuration
-    UCB0CTLW0 |= UCSWRST;       
-
-//--Configure eUSCI_B0 for I2C Slave mode
-    UCB0CTLW0 |= UCMODE_3 | UCSYNC;         // Set I2C mode, synchronous operation
-    UCB0I2COA0 = SLAVE_ADDR | UCOAEN;       // Set slave address & enable
-
-//--Configure Ports for I2C SDA (P1.2) and SCL (P1.3)
-    P1SEL1 &= ~(BIT3 | BIT2);               // Select primary module function for I2C
-    P1SEL0 |= (BIT3 | BIT2);
-
-//--Enable I2C Module
-    UCB0CTLW0 &= ~UCSWRST;                  // Release eUSCI_B0 from reset
-
-//--Enable I2C Interrupts
-    UCB0IE |= UCRXIE0;                      // Enable I2C receive interrupt
-    __bis_SR_register(GIE);                 // Enable global interrupts
-
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
     LCD_init();
@@ -58,10 +39,8 @@ int main(void)
     {
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
-        LCD_clear_first_line();
-            for(i = 0; i< 15; i++){
-                LCD_write(set_window_size[i]);              //print "set window size"
-            }
+        LCD_clear_first_line();                             //Clear first line
+        LCD_print(set_window_size, 15);                     // Print "set window size"
             RXDATA = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for window size from user
                 if(RXDATA != 0){                            //enter when a valid value has been chosen
@@ -75,10 +54,8 @@ int main(void)
             }
         //USER MODE SELECT PATTERN
         else if(user_mode == 0xB){                          //Pattern select operation
-        LCD_clear_first_line();
-            for(i = 0; i < 11; i++){                        
-                LCD_write(set_pattern[i]);                  //print "set pattern"
-            }
+            LCD_clear_first_line();                         //clear first line
+            LCD_print(set_pattern, 11);                     //Print "set pattern"
             RXDATA = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for pattern to be selected
                 if(RXDATA != 0){                            //if valid pattern was selected
@@ -89,32 +66,24 @@ int main(void)
             }
         }
         //DISPLAY PATTERN NAME ON FIRST LINE
-        switch(pattern_number){
-            case 0x1:   LCD_clear_first_line();
-                        for(i = 0; i < 6; i++){
-                        LCD_write(pattern_static[i]);       //print "static"
-                        }
+        switch(pattern_number){ 
+            case 0x1:   LCD_clear_first_line();             //clear first lline
+                        LCD_print(pattern_static, 6);       //print "static"
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x2:   LCD_clear_first_line();
-                        for(i = 0; i < 6; i++){
-                        LCD_write(pattern_toggle[i]);       //print "toggle"
-                        }
+            case 0x2:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_toggle, 6);       // print "toggle"
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x3:   LCD_clear_first_line();
-                        for(i = 0; i < 10; i++){
-                        LCD_write(pattern_up_counter[i]);   //print "up counter"
-                        }
+            case 0x3:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_up_counter, 10);  //print "up counter"
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
-            case 0x4:   LCD_clear_first_line();
-                        for(i = 0; i < 10; i++){
-                        LCD_write(pattern_in_and_out[i]);   //print "in and out"
-                        }
+            case 0x4:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_in_and_out, 10);  //print "in and out"
                         pattern_number = 0;                 //clear to stop rewrite
                         break;
 
@@ -123,11 +92,9 @@ int main(void)
         //PRINT WINDOW SIZE IN BOTTOM LEFT CORNER
         if(print_window_size == 0){
             LCD_command(0xCD);                  //move to third to last character of second row
-            for(i = 0; i < 2; i++){             //print "N =""
-                LCD_write(window_size[i]);
-            }
-                LCD_write(n_size[user_size]); //print number that was entered by user
-                print_window_size = 1;          //set flag that window # has been written
+            LCD_print(window_size, 2);          // print "N="
+            LCD_write(n_size[user_size]); //print number that was entered by user
+            print_window_size = 1;          //set flag that window # has been written
         }
 
 
