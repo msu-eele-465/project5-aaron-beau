@@ -108,10 +108,7 @@ int main(void)
 
         
     }   
-        
-       
-                 
-
+                
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
         __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
     }
