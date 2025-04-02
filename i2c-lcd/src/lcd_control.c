@@ -158,9 +158,13 @@ void LCD_Clear() {
    
 }
 
-
-
-
+/*
+The LCD_write function will read in a binary value which correlates
+to a character defined in the CGRAM table for the LCD.  The function
+will then send the upper nibble of this binary value, latch, send the 
+lower nibble, and latch again.  The LCD will process this value and
+display the corresponding character
+*/
 void LCD_write(unsigned char message) {
     P2OUT |= RS;               // RS = 1 (Write mode)
 
@@ -175,15 +179,28 @@ void LCD_write(unsigned char message) {
     __delay_cycles(3000);                                   //Delay for execution
 }
 
+
+/*
+The LCD_clear_first_line function will simply set the cursor to the first 
+character, print 16 blank spaces, then return back to the first character 
+of the top line
+*/
 void LCD_clear_first_line(){
-    int j;
+    int j;                          //loop variable
      LCD_command(0x80);             //set cursor to first character
      for(j = 0; j < 16; j++){
-        LCD_write(0b00010000);
+        LCD_write(0b00010000);      // blank character
      }
-     LCD_command(0x80);
-}
+     LCD_command(0x80);             // reset cursor to first character
+}   
 
+
+/*
+The LCD_print function will take in a predefined array corresponding to a
+message that needs to be printed along with the length of the message (which inlcludes spaces).
+The array will then be stepped through and each element printed to the LCD screen 
+according to the codes defined in the CGRAM table for the LCD
+*/
 void LCD_print(const char *word, int length) {
     int i;
     for(i = 0; i < length; i++) {

@@ -16,7 +16,13 @@ const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100
 //"in and out"
 const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
 //numbers 0-9
-const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
+const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};    
+//"T="
+const char T_equals[2] = {0b01010100, 0b00111101};
+//"degree C"
+const char degree_C[2] = {0b11011111, 0b01000011};      
+//"."
+const char period[1] = {0b00101110};    
                         
 unsigned int i;
 int user_mode;
@@ -117,8 +123,8 @@ __interrupt void EUSCI_B0_ISR(void)
             RXDATA = UCB0RXBUF;  // Read received byte
 
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
-                user_mode = RXDATA;
-                wait = 1;                   //set flag to wait for second transmission
+                user_mode = RXDATA;                   // set transmission to select user mode
+                wait = 1;                             //set flag to wait for second transmission
             }
             
             break;
