@@ -32,6 +32,7 @@ Description
 #include "src/controller_control.h"
 
 
+
 //---------------------- Variables ---------------------------------------------
 int locked = 1;                                 // Locked Boolean
 int relock = 0;                                 // Toggle to relock
@@ -110,19 +111,19 @@ controller_i2c_init();
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 10: UCB1I2CSA = 0x0069; Packet[0]=0xA; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                case 0xA: UCB1I2CSA = 0x0069; Packet[0]=0xA; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                          for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 11: UCB1I2CSA = 0x0069; Packet[0]=0xB; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                case 0xB: UCB1I2CSA = 0x0069; Packet[0]=0xB; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                          for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 12:  Packet[0]=0xC; SetOnce=1;
+                case 0xC:  Packet[0]=0xC; SetOnce=1;
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 13: UCB1I2CSA = 0x0069; Packet[0]=0xD; locked=1; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
+                case 0xD: UCB1I2CSA = 0x0069; Packet[0]=0xD; locked=1; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
                          for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
