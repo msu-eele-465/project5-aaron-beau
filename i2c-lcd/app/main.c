@@ -16,24 +16,21 @@ const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100
 //"in and out"
 const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
 //numbers 0-9
-const char n_size[10] = {0b00110001, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
+const char n_size[11] = {0b00110000, 0b00110001, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
                         
 unsigned int i;
 int user_mode = 0xA;
 int select_output;
 int RXDATA = 0xA;
 int wait;
-int user_size = 0;
+int user_size = 3;
 int pattern_number = 0;
-int print_window_size;
+int print_window_size = 0;
 
 
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
-
-    P1OUT &= ~BIT1;                         // Clear P1.0 output latch for a defined power-on state
-    P1DIR |= BIT1;                          // Set P1.0 to output direction
 
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
@@ -41,7 +38,7 @@ int main(void)
     LCD_setup();
     while(1)
     {
-
+        //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
             for(i = 0; i< 15; i++){
                 LCD_write(set_window_size[i]);              //print "set window size"
@@ -53,11 +50,11 @@ int main(void)
                     wait = 0;                               //clear wait flag
                     user_mode = 0;                          //set user mode to zero to stop reprint
                     print_window_size = 0;                  //set flag that window size can be printed
-                }
+                    }
                 
                 }
             }
-        
+        //USER MODE SELECT PATTERN
         else if(user_mode == 0xB){                          //Pattern select operation
             for(i = 0; i < 11; i++){                        
                 LCD_write(set_pattern[i]);                  //print "set pattern"
@@ -71,7 +68,7 @@ int main(void)
                 }
             }
         }
-
+        //DISPLAY PATTERN NAME ON FIRST LINE
         switch(pattern_number){
             case 0x1:   for(i = 0; i < 6; i++){
                         LCD_write(pattern_static[i]);       //print "static"
@@ -99,7 +96,7 @@ int main(void)
 
             default:    break;
         }
-
+        //PRINT WINDOW SIZE IN BOTTOM LEFT CORNER
         if(print_window_size == 0){
             LCD_command(0xCD);                  //move to third to last character of second row
             for(i = 0; i < 2; i++){             //print "N =""
@@ -109,13 +106,12 @@ int main(void)
                 print_window_size = 1;          //set flag that window # has been written
         }
 
+
         
     }   
         
        
                  
-
-        
 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
         __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
