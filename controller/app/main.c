@@ -45,6 +45,7 @@ int main(void) {
 
 controller_init();
 controller_i2c_init();
+__bis_SR_register(GIE);  // Enable global interrupts
 
     PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
 //------------------------ End Initialization ----------------------------------
@@ -56,8 +57,6 @@ controller_i2c_init();
     while (1) {
 
 
-            ADCCTL0 |= ADCENC | ADCSC;     // Enable temp read
-            __delay_cycles(1000000);       // For test
 
 //--Locked                                 // While Locked variable is set  
         while (locked == 1) {              // Set led bar off and scan keypad
@@ -139,7 +138,14 @@ __interrupt void USCI_B1_ISR(void) {
         Data_Cnt++;
     }
 }
+/*ISR to trigger ADC read every 0.5s*/
+#pragma vector = TIMER0_B1_VECTOR
+__interrupt void ISR_TB0_OVERFLOW(void)
+{    
+         ADCCTL0 |= ADCENC | ADCSC;            // Enable temp read
+         TB0CTL &= ~TBIFG;                     // Clear interrupt flag
 
+}
 /*IRS for reading ADC temperature*/
 #pragma vector = ADC_VECTOR
 __interrupt void ADC_ISR(void)
@@ -150,6 +156,4 @@ __interrupt void ADC_ISR(void)
     float calibration_factor = 20.0 / 495.0;
 
     temperature_C = adc_value * calibration_factor; // Scale ADC value to C
-
-
 }

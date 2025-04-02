@@ -27,30 +27,40 @@ void controller_init(){
     P6OUT |= BIT6;      // Clear P16 output latch for a defined power-on state
 
 //----------------------------ADC Initialization------------------------------
-
-    ADCCTL0 |= ADCSHT_2 | ADCON;        // Sample and hold time, ADC ON
-    ADCCTL1 |= ADCSHP;                  // Use sampling timer
-    ADCCTL2 |= ADCRES_2;                 // 12-bit resolution
-    ADCMCTL0 |= ADCINCH_8 | ADCSREF_0;  // Correct definition for A8 (P5.0)
-    ADCIE |= ADCIE0;                     // Enable ADC interrupt
+    ADCCTL0 |= ADCSHT_2 | ADCON;               // Sample and hold time, ADC ON
+    ADCCTL1 |= ADCSHP;                         // Use sampling timer
+    ADCCTL2 |= ADCRES_2;                       // 12-bit resolution
+    ADCMCTL0 |= ADCINCH_8 | ADCSREF_0;
+    ADCIE |= ADCIE0;                           // Enable ADC interrupt
 
     P5SEL1 |= BIT0;  // Set P5.0 as ADC input
     P5SEL0 |= BIT0;
 
+//----------------------------Timer_B Initialization----------------------------
+    TB0CTL |= TBCLR;                           // Clear timer
+    TB0CTL |= TBSSEL__SMCLK;                   // Select SMCLK (1 MHz)
+    TB0CTL |= MC__UP;                          // Set mode to "up"
+    TB0CTL |= ID__4;                           // Divide clock by 4
+    TB0CCR0 = 124999;                          // Set overflow period to ~0.5s (250kHz * 0.5s)
+    TB0CTL |= TBIE;                            // Enable Timer Overflow Interrupt
+    TB0CTL &= ~TBIFG;                          // Clear pending interrupt flag
+    __enable_interrupt();                      // Enable global interrupts
+
+
     //------------------------------- I2C Initialization -----------------------------    
-    UCB1CTLW0 |= UCSWRST;                  // UCSWRST =1 for eUSCI_B1 in SW reset
+    UCB1CTLW0 |= UCSWRST;                      // UCSWRST =1 for eUSCI_B1 in SW reset
 	
 //--Configure eUSCI_B1
-    UCB1CTLW0 |= UCSSEL_3;                 // Choose BRCLK=SMCLK=1MHz
-    UCB1BRW = 10;                          // Divide BRCLK by 10 for SCL=100kHz
+    UCB1CTLW0 |= UCSSEL_3;                     // Choose BRCLK=SMCLK=1MHz
+    UCB1BRW = 10;                              // Divide BRCLK by 10 for SCL=100kHz
 
-    UCB1CTLW0 |= UCMODE_3;                 // Put into I2C mode
-    UCB1CTLW0 |= UCMST;                    // Put into master mode
-	UCB1CTLW0 |= UCTR;                     // Put into Tx mode
-	//UCB1I2CSA = 0x0069;                    // Slave address = 0x68
+    UCB1CTLW0 |= UCMODE_3;                     // Put into I2C mode
+    UCB1CTLW0 |= UCMST;                        // Put into master mode
+	UCB1CTLW0 |= UCTR;                         // Put into Tx mode
+	//UCB1I2CSA = 0x0069;                      // Slave address = 0x68
 
-    UCB1CTLW1 |= UCASTP_2;                 // Auto STOP when UCB1TBCNT reached
-	UCB1TBCNT = 1;            // # of Bytes in Packet
+    UCB1CTLW1 |= UCASTP_2;                     // Auto STOP when UCB1TBCNT reached
+	UCB1TBCNT = 1;                             // # of Bytes in Packet
 
 //--Configure Ports SDA (P4.6) and SCL (P4.7)
     P4SEL1 &= ~(BIT6 | BIT7);
@@ -60,8 +70,8 @@ void controller_init(){
     UCB1CTLW0 &= ~UCSWRST;
 
 //--Enable Interrupts AFTER exiting reset
-	UCB1IE |= UCTXIE0;                     // Enable I2C Tx0 IRQ
-    __enable_interrupt();                  // Enable Maskable IRQs
+	UCB1IE |= UCTXIE0;                         // Enable I2C Tx0 IRQ
+    __enable_interrupt();                      // Enable Maskable IRQs
 }
 
 
