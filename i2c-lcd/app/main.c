@@ -124,8 +124,8 @@ __interrupt void EUSCI_B0_ISR(void)
         case 0x16:  // UCRXIFG0: Byte received
             RXDATA = UCB0RXBUF;  // Read received byte
 
-            if(RXDATA == 0xA | 0xB){       //check to see if user mode has been selected
-                RXDATA = user_mode;
+            if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
+                user_mode = RXDATA;
                 wait = 1;                   //set flag to wait for second transmission
             }
             
