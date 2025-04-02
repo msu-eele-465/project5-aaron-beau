@@ -22,7 +22,7 @@
 #include "src/keypad_scan.h"
 #include "src/rgb_control.h"
 #include "src/controller_control.h"
-
+#include "src/adc_control.h"
 
 
 //---------------------- Variables ---------------------------------------------
@@ -102,12 +102,10 @@ __bis_SR_register(GIE);  // Enable global interrupts
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 0xA: UCB1I2CSA = 0x0069; Packet[0]=0xA; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
-                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 0xB: UCB1I2CSA = 0x0069; Packet[0]=0xB; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
-                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
                 case 0xC:  Packet[0]=0xC; SetOnce=1;
@@ -156,4 +154,6 @@ __interrupt void ADC_ISR(void)
     float calibration_factor = 20.0 / 495.0;
 
     temperature_C = adc_value * calibration_factor; // Scale ADC value to C
+    add_temperature_value(temperature_C);
+
 }
