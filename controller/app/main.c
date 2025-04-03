@@ -47,8 +47,7 @@ controller_init();
 controller_i2c_init();
 init_moving_average();
 ADC_init();
-//__bis_SR_register(GIE);  // Enable global interrupts
-__enable_interrupt();
+__bis_SR_register(GIE);  // Enable global interrupts
 
     PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
 //------------------------ End Initialization ----------------------------------
@@ -157,8 +156,9 @@ __interrupt void USCI_B1_ISR(void) {
 // Timer_B ISR - Triggers ADC every 0.5s
 #pragma vector = TIMER0_B0_VECTOR
 __interrupt void Timer_B_ISR(void) {
-    TB0CCTL0 &= ~CCIFG;  // Clear interrupt flag
+    
     ADCCTL0 |= ADCENC | ADCSC;  // Start ADC conversion
+    TB0CCTL0 &= ~CCIFG;  // Clear interrupt flag
 }
 
 /*IRS for reading ADC temperature*/

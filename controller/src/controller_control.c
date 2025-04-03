@@ -26,13 +26,13 @@ void controller_init(){
     P6DIR |= BIT6;                             // Set P16 to output direction
     P6OUT |= BIT6;      // Clear P16 output latch for a defined power-on state
 
-//----------------------------ADC Initialization------------------------------
+
    
 //----------------------------Timer_A Initialization----------------------------
     TB0CCTL0 = CCIE;  // Enable Timer_B interrupt
     TB0CCR0 = 500000; // 1MHz / 2 = 0.5s
     TB0CTL = TBSSEL_2 | MC_1 | ID_0 | TBCLR;  // SMCLK, up mode, no division
-    __enable_interrupt();                      // Enable global interrupts
+   
 
 
     //------------------------------- I2C Initialization -----------------------------    

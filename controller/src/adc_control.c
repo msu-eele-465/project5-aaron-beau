@@ -38,8 +38,8 @@ void ADC_init(){
     ADCCTL2 |= ADCRES_2;        // Resoultion  = 12 bit
 
     ADCMCTL0 |= ADCINCH_8;      //ADC INPUT Channel = A8
-    __enable_interrupt();
-
+   
+    ADCIE |= ADCIE0;            //enable ADC IRQ
     
 
 }
