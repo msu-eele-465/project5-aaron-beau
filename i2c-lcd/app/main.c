@@ -31,6 +31,8 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
+volatile int temperature;
+volatile int temp_received = 0;
 
 
 int main(void)
@@ -43,6 +45,11 @@ int main(void)
     LCD_setup();
     while(1)
     {
+
+        if(RXDATA == 0){
+            LCD_Clear();
+        }
+
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
@@ -103,6 +110,15 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
+        if(temp_received == 1){
+            LCD_command(0xC0);
+            LCD_print(T_equals, 2);
+
+            LCDprint(period, 1);
+            temp_received = 0;
+        }
+
+
 
         
     }   
@@ -125,6 +141,10 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
+            }else if(RXDATA > 0xB){
+                temperature = RXDATA;
+                temp_received = 1;
+
             }
             
             break;
