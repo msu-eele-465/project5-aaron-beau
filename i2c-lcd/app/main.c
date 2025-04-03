@@ -34,7 +34,6 @@ int print_window_size = 1;
 int LCD_started = 0;
 
 
-
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
@@ -46,13 +45,11 @@ int main(void)
     while(1)
     {
 
-       
-
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
         LCD_print(set_window_size, 15);                     // Print "set window size"
-            user_mode = 0;                                     //clear RXDATA for next transmission
+           user_mode = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for window size from user
                 if(RXDATA < 10){                            //enter when a valid value has been chosen
                     user_size = RXDATA;                  
@@ -68,8 +65,8 @@ int main(void)
         //USER MODE SELECT PATTERN
         else if(user_mode == 0xB){                          //Pattern select operation
             LCD_clear_first_line();                         //clear first line
-            LCD_print(set_pattern, 11);                     //Print "set pattern"
-            user_mode = 0;
+            LCD_print(set_pattern, 11);                     //Print "set pattern
+            user_mode = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for pattern to be selected
                 if(RXDATA < 5){                            //if valid pattern was selected
                     pattern_number = RXDATA;                
@@ -110,6 +107,7 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
+
         if(LCD_started == 1){
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
@@ -118,8 +116,6 @@ int main(void)
             LCD_print(period, 1);
             LCD_write(0b01111000);
             LCD_print(degree_C, 2);
-
-        }
 
     }   
                 
@@ -140,8 +136,9 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
+
                 LCD_started = 1;
-            }
+       
             break;
 
         case 0x12:  // UCSTPIFG: Stop condition detected
