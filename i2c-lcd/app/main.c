@@ -31,9 +31,9 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
-volatile float temperature_C;
+int temperature_C;
 volatile int adc_value;
-volatile float conversion_factor = (20.05 / 2047.0);  // Scale factor
+int conversion_factor = 100;  // Scale factor
 
 
 
@@ -114,8 +114,8 @@ int main(void)
         }
 
         if(adc_value > 0xB){
-            adc_value = (adc_value * 100) + 25;     //Build ADC value back out from transmission
-            temperature_C = (adc_value / (float)user_size) * conversion_factor;
+           adc_value = (adc_value * 100) + 25;     //Build ADC value back out from transmission
+            temperature_C = (adc_value /user_size) * conversion_factor;
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
