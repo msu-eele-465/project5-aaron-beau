@@ -40,7 +40,7 @@ volatile unsigned int adc_value;                // Stores raw ADC reading (0-409
 volatile uint16_t adc_samples[MAX_WINDOW_SIZE];  // Array to store ADC readings
 volatile uint32_t adc_sum = 0;  // Sum of the last 'window_size' samples
 volatile uint8_t sample_index = 0;  // Index for circular buffer
-volatile float temperature_C = 0.0;  // Stores calculated temperature
+volatile int temperature_C = 0.0;  // Stores calculated temperature
 volatile uint8_t samples_collected = 0;  // Tracks how many samples have been collecte
 
 
@@ -237,7 +237,9 @@ __interrupt void ADC_ISR(void)
 
     // Calculate rolling average temperature (once enough samples are collected)
     if (samples_collected == window_size) {
-        Send_ADC(adc_sum);
+        
+        temperature_C = (adc_sum/window_size) / 100;
+        Send_ADC(temperature_C);
     
     }
 
