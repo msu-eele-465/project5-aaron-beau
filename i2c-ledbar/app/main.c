@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
-* Project 4: Multi MSP with LED bar and LCD Display
+* Project 5: Multi MSP with LED bar and LCD Display and Temp sensor
 * Aaron Foster & Beau Coburn
 * EELE 465
 * 3/25/25

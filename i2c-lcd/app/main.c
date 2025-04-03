@@ -121,6 +121,7 @@ int main(void)
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
     }
+}
 
 //--------- I2C Receive ISR (Handles Incoming Data) ---------------------------
 /* ISR triggers upon start condition from I2C bus and receives sent data from
@@ -136,7 +137,6 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
-
                 LCD_started = 1;
        
             break;
@@ -149,4 +149,5 @@ __interrupt void EUSCI_B0_ISR(void)
             break;
     }
     
+    }
 }
