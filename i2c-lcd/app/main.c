@@ -31,11 +31,10 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
-volatile int temperature;
-volatile int temp_incoming = 0;
-volatile int whole_number;
-volatile int decimal;
-volatile int print_temperature;
+volatile float temperature_C;
+volatile int adc_value;
+volatile float conversion_factor = (20.05 / 2047.0);  // Scale factor
+
 
 
 int main(void)
@@ -114,17 +113,15 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
-        if(print_temperature == 1){
+        if(adc_value > 0xB){
+            adc_value = (adc_value * 100) + 25;     //Build ADC value back out from transmission
+            temperature_C = (adc_value / (float)user_size) * conversion_factor;
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
             LCD_print(period, 1);
-            print_temperature = 0;
         }
 
-
-
-        
     }   
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
@@ -145,6 +142,8 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
+            }else if(RXDATA > 0xB){
+                RXDATA = adc_value;
             }
             break;
 
