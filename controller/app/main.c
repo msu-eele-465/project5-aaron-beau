@@ -119,7 +119,8 @@ __bis_SR_register(GIE);  // Enable global interrupts
 
                 case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT;
                           rgb_control(2); __delay_cycles(500000);
-                          while(relock==0xA){relock = led_pattern();} 
+                          while(relock==0xA){relock = led_pattern();}
+                          set_moving_average_size(relock);
                           break;
 
                 case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 

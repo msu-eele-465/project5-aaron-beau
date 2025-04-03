@@ -33,7 +33,7 @@ void controller_init(){
     ADCMCTL0 |= ADCINCH_8 | ADCSREF_0;
     ADCIE |= ADCIE0;                           // Enable ADC interrupt
 
-    P5SEL1 |= BIT0;  // Set P5.0 as ADC input
+    P5SEL1 |= BIT0;                            // Set P5.0 as ADC input
     P5SEL0 |= BIT0;
 
 //----------------------------Timer_B Initialization----------------------------

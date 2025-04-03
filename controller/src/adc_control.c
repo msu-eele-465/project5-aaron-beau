@@ -48,7 +48,7 @@ void set_moving_average_size(int new_n){
     init_moving_average();  //reinitialize the buffer
 }
 
-void Convert_Float(float value) {
+void convert_and_send_float(float value) {
     int whole = (int)value;              // Get whole number part
     int decimal = (int)((value - whole) * 10);  // Get first decimal digit
 }
