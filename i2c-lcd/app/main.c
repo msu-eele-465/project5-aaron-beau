@@ -31,7 +31,7 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
-int temperature_C;
+int LCD_started = 0;
 
 
 
@@ -46,22 +46,21 @@ int main(void)
     while(1)
     {
 
-        if(RXDATA == 0){
-            LCD_Clear();
-        }
+       
 
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
         LCD_print(set_window_size, 15);                     // Print "set window size"
-        LCD_clear_first_line();
-            RXDATA = 0;                                     //clear RXDATA for next transmission
+            user_mode = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for window size from user
-                if(RXDATA != 0){                            //enter when a valid value has been chosen
+                if(RXDATA < 10){                            //enter when a valid value has been chosen
                     user_size = RXDATA;                  
                     wait = 0;                               //clear wait flag
                     user_mode = 0;                          //set user mode to zero to stop reprint
                     print_window_size = 0;                  //set flag that window size can be printed
+                     LCD_clear_first_line();                             //Clear first line
+                     RXDATA = 0;
                     }
                 
                 }
@@ -70,9 +69,9 @@ int main(void)
         else if(user_mode == 0xB){                          //Pattern select operation
             LCD_clear_first_line();                         //clear first line
             LCD_print(set_pattern, 11);                     //Print "set pattern"
-            RXDATA = 0;                                     //clear RXDATA for next transmission
+            user_mode = 0;
             while(wait == 1){                               //wait for pattern to be selected
-                if(RXDATA != 0){                            //if valid pattern was selected
+                if(RXDATA < 5){                            //if valid pattern was selected
                     pattern_number = RXDATA;                
                     wait = 0;                               //clear wait flag
                     user_mode = 0;                          //clear flag to stop rewrite
@@ -111,11 +110,15 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
-        if(temperature_C > 0xB){
+        if(LCD_started == 1){
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
-
+            LCD_write(0b01111000);
+            LCD_write(0b01111000);
             LCD_print(period, 1);
+            LCD_write(0b01111000);
+            LCD_print(degree_C, 2);
+
         }
 
     }   
@@ -137,8 +140,7 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
-            }else if(RXDATA > 0xB){
-                RXDATA = temperature_C;
+                LCD_started = 1;
             }
             break;
 
