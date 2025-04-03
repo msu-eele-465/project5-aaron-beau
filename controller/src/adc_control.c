@@ -49,7 +49,11 @@ void set_moving_average_size(int new_n){
 }
 
 void convert_and_send_float(float value) {
-    int whole = (int)value;              // Get whole number part
-    int decimal = (int)((value - whole) * 10);  // Get first decimal digit
-}
+    int Data_Cnt = 0;              // Used for multiple bytes sent
+    int i=0;
+    int whole = (int)value;        // Get whole number part
+    int decimal = (int)((value - whole) * 10);// Get first decimal digit
+    char temp_packet[] = {0x0C, whole, decimal};
+   
+  }
 

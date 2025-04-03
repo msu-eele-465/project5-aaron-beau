@@ -31,14 +31,13 @@ int relock = 0;                                 // Toggle to relock
 volatile uint8_t *txData;                       // Pointer to data buffer
 int SetOnce=1;                                  // Variable to trigger Tx once
 //---------------------- i2c Variables -----------------------------------------
-char Packet[] = {0x00};                         // Tx Packet
+volatile char Packet[] = {0x00};                         // Tx Packet
 int Data_Cnt = 0;                               // Used for multiple bytes sent
 int i;                                          // Delay counter variable
 //---------------------- ADC Variables -----------------------------------------
 volatile unsigned int adc_value;                // Stores raw ADC reading (0-4095)
 volatile float temperature_C;                   // Stores calculated temperature in Celsius
 volatile float send_temp=0;
-char temp_packet[] = {0x00, 0x00, 0x00};
 
 //------------------------------------------------------------------------------
 int main(void) {
@@ -121,6 +120,7 @@ __bis_SR_register(GIE);  // Enable global interrupts
                           rgb_control(2); __delay_cycles(500000);
                           while(relock==0xA){relock = led_pattern();}
                           set_moving_average_size(relock);
+                          convert_and_send_float(send_temp);
                           break;
 
                 case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 

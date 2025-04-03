@@ -31,8 +31,6 @@ Pin Out
 --------------
 Rows : P3.0, P3.1, P3.2, P3.3 
 Cols : P3.4, P3.5, P3.6, P3.7
-
-//This line was added to fix git pushing
 -------------------------------------------------------------------------------------*/
 #include <msp430.h> 
 #include "rgb_control.h"
