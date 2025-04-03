@@ -32,8 +32,6 @@ int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
 int temperature_C;
-volatile int adc_value;
-int conversion_factor = 100;  // Scale factor
 
 
 
@@ -113,9 +111,7 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
-        if(adc_value > 0xB){
-           adc_value = (adc_value * 100) + 25;     //Build ADC value back out from transmission
-            temperature_C = (adc_value /user_size) * conversion_factor;
+        if(temperature_C > 0xB){
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
@@ -125,7 +121,6 @@ int main(void)
     }   
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
-        __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
     }
 
 //--------- I2C Receive ISR (Handles Incoming Data) ---------------------------
@@ -143,7 +138,7 @@ __interrupt void EUSCI_B0_ISR(void)
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
             }else if(RXDATA > 0xB){
-                RXDATA = adc_value;
+                RXDATA = temperature_C;
             }
             break;
 
