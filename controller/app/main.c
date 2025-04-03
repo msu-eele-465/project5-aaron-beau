@@ -37,6 +37,8 @@ int i;                                          // Delay counter variable
 //---------------------- ADC Variables -----------------------------------------
 volatile unsigned int adc_value;                // Stores raw ADC reading (0-4095)
 volatile float temperature_C;                   // Stores calculated temperature in Celsius
+volatile float send_temp=0;
+char temp_packet[] = {0x00, 0x00, 0x00};
 
 //------------------------------------------------------------------------------
 int main(void) {
@@ -45,6 +47,7 @@ int main(void) {
 
 controller_init();
 controller_i2c_init();
+init_moving_average();
 __bis_SR_register(GIE);  // Enable global interrupts
 
     PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
@@ -114,8 +117,10 @@ __bis_SR_register(GIE);  // Enable global interrupts
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
 
-                case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                         rgb_control(2); __delay_cycles(500000); break;
+                case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT;
+                          rgb_control(2); __delay_cycles(500000);
+                          while(relock==0xA){relock = led_pattern();} 
+                          break;
 
                 case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
@@ -166,6 +171,6 @@ __interrupt void ADC_ISR(void)
     float calibration_factor = 20.0 / 495.0;
 
     temperature_C = adc_value * calibration_factor; // Scale ADC value to C
-    add_temperature_value(temperature_C);
+    send_temp=add_temperature_value(temperature_C);
 
 }
