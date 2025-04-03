@@ -1,84 +1,171 @@
-/* --COPYRIGHT--,BSD_EX
- * Copyright (c) 2016, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *******************************************************************************
- *
- *                       MSP430 CODE EXAMPLE DISCLAIMER
- *
- * MSP430 code examples are self-contained low-level programs that typically
- * demonstrate a single peripheral function or device feature in a highly
- * concise manner. For this the code may rely on the device's power-on default
- * register values and settings such as the clock configuration and care must
- * be taken when combining code from several examples to avoid potential side
- * effects. Also see www.ti.com/grace for a GUI- and www.ti.com/msp430ware
- * for an API functional library-approach to peripheral configuration.
- *
- * --/COPYRIGHT--*/
-//******************************************************************************
-//  MSP430FR235x Demo - Toggle P1.0 using software
-//
-//  Description: Toggle P1.0 every 0.1s using software.
-//  By default, FR235x select XT1 as FLL reference.
-//  If XT1 is present, the PxSEL(XIN & XOUT) needs to configure.
-//  If XT1 is absent, switch to select REFO as FLL reference automatically.
-//  XT1 is considered to be absent in this example.
-//  ACLK = default REFO ~32768Hz, MCLK = SMCLK = default DCODIV ~1MHz.
-//
-//           MSP430FR2355
-//         ---------------
-//     /|\|               |
-//      | |               |
-//      --|RST            |
-//        |           P1.0|-->LED
-//
-//   Cash Hao
-//   Texas Instruments Inc.
-//   November 2016
-//   Built with IAR Embedded Workbench v6.50.0 & Code Composer Studio v6.2.0
-//******************************************************************************
+/*-----------------------------------------------------------------------------
+* Project 5: Reading an Analog Temperature Sensor with an ADC
+* Aaron Foster & Beau Coburn
+* EELE 465
+* 4/3/25
+* 
+* Main file for the controller msp. receives
+* a character from the keypad to unlock. Later receives
+* characters from the keypad and transmits commands to 
+* the peripherals. Also reads LM19 temperature sensor and sends output to 
+* LCD microcontroller
+*///----------------------------------------------------------------------------
+
+
+
+
 #include <msp430.h>
+#include <stdint.h>
+#include "intrinsics.h"
+#include "msp430fr2355.h"
+#include "controller_control.h"
+#include "src/keypad_scan.h"
+#include "src/rgb_control.h"
+#include "src/controller_control.h"
+#include "src/adc_control.h"
 
-int main(void)
-{
-    WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
-    
-    P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
-    P1DIR |= BIT0;                          // Set P1.0 to output direction
 
-    PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
-                                            // to activate previously configured port settings
+//---------------------- Variables ---------------------------------------------
+int locked = 1;                                 // Locked Boolean
+int relock = 0;                                 // Toggle to relock
+volatile uint8_t *txData;                       // Pointer to data buffer
+int SetOnce=1;                                  // Variable to trigger Tx once
+//---------------------- i2c Variables -----------------------------------------
+char Packet[] = {0x00};                         // Tx Packet
+int Data_Cnt = 0;                               // Used for multiple bytes sent
+int i;                                          // Delay counter variable
+//---------------------- ADC Variables -----------------------------------------
+volatile unsigned int adc_value;                // Stores raw ADC reading (0-4095)
+volatile float temperature_C;                   // Stores calculated temperature in Celsius
 
-    while(1)
-    {
-        P1OUT ^= BIT0;                      // Toggle P1.0 using exclusive-OR
-        __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
+//------------------------------------------------------------------------------
+int main(void) {
+    WDTCTL = WDTPW | WDTHOLD;                   // Stop watchdog timer
+
+
+controller_init();
+controller_i2c_init();
+__bis_SR_register(GIE);  // Enable global interrupts
+
+    PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
+//------------------------ End Initialization ----------------------------------
+
+/* 
+* Main loop continually scans keypad and jumps to different while(locked) loops 
+* Depending on the button pressed
+*/
+    while (1) {
+
+
+
+//--Locked                                 // While Locked variable is set  
+        while (locked == 1) {              // Set led bar off and scan keypad
+            if(SetOnce==1){
+                Packet[0]=0x00;
+                SetOnce=0;
+                UCB1CTLW0 |= UCTXSTT;
+            }
+
+            rgb_control(1);
+            locked = unlock_keypad();
+        }
+
+//--Unlocked                               // When locked variable is not set
+        while (locked == 0) {              // continually scan keypad and tx
+            rgb_control(3);                // Based on button press
+            relock = led_pattern();
+
+/* Set packet for tx, transmit, briefly change LED to green */
+
+            switch(relock){
+                case 0: UCB1I2CSA = 0x0069; Packet[0]=0x00; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
+	                    for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 1: UCB1I2CSA = 0x0069; Packet[0]=0x01; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                        for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 2: UCB1I2CSA = 0x0069; Packet[0]=0x02; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                        for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+                        
+                case 3: UCB1I2CSA = 0x0069; Packet[0]=0x03; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                        for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 4: UCB1I2CSA = 0x0069; Packet[0]=0x04; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
+                        for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 5: UCB1I2CSA = 0x00E; Packet[0] = 0x5; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 6: UCB1I2CSA = 0x00E; Packet[0] = 0x6; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 7: UCB1I2CSA = 0x00E; Packet[0] = 0x7; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 8: UCB1I2CSA = 0x00E; Packet[0] = 0x8; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;                
+
+                case 9:  Packet[0]=0x9; SetOnce=1;
+                          UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                         rgb_control(2); __delay_cycles(500000); break;
+
+                case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                         rgb_control(2); __delay_cycles(500000); break;
+
+                case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                         rgb_control(2); __delay_cycles(500000); break;
+
+                case 0xC:  Packet[0]=0xC; SetOnce=1;
+                          UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                         rgb_control(2); __delay_cycles(500000); break;
+
+                case 0xD: UCB1I2CSA = 0x0069; Packet[0]=0xD; locked=1; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
+                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
+                         rgb_control(2); __delay_cycles(500000); break;
+
+                default: 
+                    break;
+            }
+        }
     }
+
+    return 0;
+}
+//------------------Interrupt Service Routines----------------------------------
+/* ISR for I2C, iterates through Packet for each variable to be sent*/
+#pragma vector = USCI_B1_VECTOR
+__interrupt void USCI_B1_ISR(void) {
+    if(Data_Cnt == (sizeof(Packet)-1)) {
+        UCB1TXBUF = Packet[Data_Cnt];
+        Data_Cnt = 0;
+    }else{
+        UCB1TXBUF = Packet[Data_Cnt];
+        Data_Cnt++;
+    }
+}
+/*ISR to trigger ADC read every 0.5s*/
+#pragma vector = TIMER0_B1_VECTOR
+__interrupt void ISR_TB0_OVERFLOW(void)
+{    
+         ADCCTL0 |= ADCENC | ADCSC;            // Enable temp read
+         TB0CTL &= ~TBIFG;                     // Clear interrupt flag
+
+}
+/*IRS for reading ADC temperature*/
+#pragma vector = ADC_VECTOR
+__interrupt void ADC_ISR(void)
+{
+    adc_value = ADCMEM0;  // Read ADC result
+
+    // Calibration factor to map 495 to room temp
+    float calibration_factor = 20.0 / 495.0;
+
+    temperature_C = adc_value * calibration_factor; // Scale ADC value to C
+    add_temperature_value(temperature_C);
+
 }

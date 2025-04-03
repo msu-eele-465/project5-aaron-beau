@@ -16,7 +16,13 @@ const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100
 //"in and out"
 const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
 //numbers 0-9
-const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};              
+const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};    
+//"T="
+const char T_equals[2] = {0b01010100, 0b00111101};
+//"degree C"
+const char degree_C[2] = {0b11011111, 0b01000011};      
+//"."
+const char period[1] = {0b00101110};    
                         
 unsigned int i;
 int user_mode;
@@ -25,6 +31,8 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
+volatile int temperature;
+volatile int temp_received = 0;
 
 
 int main(void)
@@ -37,6 +45,11 @@ int main(void)
     LCD_setup();
     while(1)
     {
+
+        if(RXDATA == 0){
+            LCD_Clear();
+        }
+
         //USER MODE SELECT WINDOW SIZE
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
@@ -49,6 +62,7 @@ int main(void)
                     user_mode = 0;                          //set user mode to zero to stop reprint
                     print_window_size = 0;                  //set flag that window size can be printed
                     }
+                
                 }
             }
         //USER MODE SELECT PATTERN
@@ -94,7 +108,17 @@ int main(void)
             LCD_print(window_size, 2);          // print "N="
             LCD_write(n_size[user_size]); //print number that was entered by user
             print_window_size = 1;          //set flag that window # has been written
-        }  
+        }
+
+        if(temp_received == 1){
+            LCD_command(0xC0);
+            LCD_print(T_equals, 2);
+
+            LCD_print(period, 1);
+            temp_received = 0;
+        }
+
+        
     }   
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
@@ -113,8 +137,12 @@ __interrupt void EUSCI_B0_ISR(void)
             RXDATA = UCB0RXBUF;  // Read received byte
 
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
-                user_mode = RXDATA;                   //
-                wait = 1;                            //set flag to wait for second transmission
+                user_mode = RXDATA;                   // set transmission to select user mode
+                wait = 1;                             //set flag to wait for second transmission
+            }else if(RXDATA > 0xB){
+                temperature = RXDATA;
+                temp_received = 1;
+
             }
             
             break;
