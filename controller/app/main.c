@@ -98,6 +98,18 @@ __bis_SR_register(GIE);  // Enable global interrupts
                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                         rgb_control(2); __delay_cycles(500000); break;
 
+                case 5: UCB1I2CSA = 0x00E; Packet[0] = 0x5; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 6: UCB1I2CSA = 0x00E; Packet[0] = 0x6; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 7: UCB1I2CSA = 0x00E; Packet[0] = 0x7; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;
+
+                case 8: UCB1I2CSA = 0x00E; Packet[0] = 0x8; UCB1CTLW0 |= UCTXSTT;
+                        rgb_control(2); __delay_cycles(500000); break;                
+
                 case 9:  Packet[0]=0x9; SetOnce=1;
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
                          rgb_control(2); __delay_cycles(500000); break;
