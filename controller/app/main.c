@@ -22,6 +22,7 @@
 #include "src/controller_control.h"
 #include "src/adc_control.h"
 
+#define MAX_WINDOW_SIZE 9           //max size that window can be
 
 //---------------------- Variables ---------------------------------------------
 int locked = 1;                                 // Locked Boolean
@@ -36,9 +37,12 @@ int Data_Cnt = 0;                               // Used for multiple bytes sent
 int i;                                          // Delay counter variable
 //---------------------- ADC Variables -----------------------------------------
 volatile unsigned int adc_value;                // Stores raw ADC reading (0-4095)
-volatile float temperature_C;                   // Stores calculated temperature in Celsius
-volatile float send_temp=0;
-char temp_packet[] = {0x00, 0x00, 0x00};
+volatile uint16_t adc_samples[MAX_WINDOW_SIZE];  // Array to store ADC readings
+volatile uint32_t adc_sum = 0;  // Sum of the last 'window_size' samples
+volatile uint8_t sample_index = 0;  // Index for circular buffer
+volatile float temperature_C = 0.0;  // Stores calculated temperature
+volatile uint8_t samples_collected = 0;  // Tracks how many samples have been collecte
+
 
 //------------------------------------------------------------------------------
 int main(void) {
@@ -46,7 +50,6 @@ int main(void) {
 
 
 controller_init();
-init_moving_average();
 ADC_init();
 __bis_SR_register(GIE);  // Enable global interrupts
 
@@ -100,7 +103,7 @@ __bis_SR_register(GIE);  // Enable global interrupts
                         rgb_control(2); __delay_cycles(500000); 
                         if(window_size_unset == 1){
                             window_size = 2;
-                             window_size_unset = 0;
+                            window_size_unset = 0;
                          }
                         break;
                         
@@ -214,10 +217,30 @@ __interrupt void ADC_ISR(void)
 {
     adc_value = ADCMEM0;  // Read ADC result
 
-    // Calibration factor to map 2047 to room temp
-    float calibration_factor = 20.05 / 2047.0;
+   // Subtract the oldest sample from sum
+    adc_sum -= adc_samples[sample_index];
 
-    temperature_C = adc_value * calibration_factor; // Scale ADC value to C
-    send_temp = add_temperature_value(temperature_C);
+    // Store new sample in array
+    adc_samples[sample_index] = adc_value;
+
+    // Add new sample to sum
+    adc_sum += adc_value;
+
+    // Move to next index, wrap around if necessary
+    sample_index = (sample_index + 1) % window_size;
+
+    // Ensure we have enough samples before averaging
+    if (samples_collected < window_size) {
+        samples_collected++;
+    }
+
+    // Calculate rolling average temperature (once enough samples are collected)
+    if (samples_collected == window_size) {
+        float conversion_factor = 20.05 / 2047.0;  // Scale factor
+        temperature_C = (adc_sum / (float)window_size) * conversion_factor;
+    }
+    
+
+    
 
 }

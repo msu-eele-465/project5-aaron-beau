@@ -38,3 +38,7 @@ void Convert_Float(float value) {
     int decimal = (int)((value - whole) * 10);  // Get first decimal digit
 }
 
+float Sum_Temps(float Temperature_C, int window_size){
+
+}
+
