@@ -9,6 +9,5 @@
 // Function prototype
 void controller_init();
 
-void controller_i2c_init();
 
 #endif

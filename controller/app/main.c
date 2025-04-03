@@ -28,6 +28,8 @@ int locked = 1;                                 // Locked Boolean
 int relock = 0;                                 // Toggle to relock
 volatile uint8_t *txData;                       // Pointer to data buffer
 int SetOnce=1;                                  // Variable to trigger Tx once
+int window_size = 3;
+int window_size_unset;
 //---------------------- i2c Variables -----------------------------------------
 char Packet[] = {0x00};                         // Tx Packet
 int Data_Cnt = 0;                               // Used for multiple bytes sent
@@ -44,7 +46,6 @@ int main(void) {
 
 
 controller_init();
-controller_i2c_init();
 init_moving_average();
 ADC_init();
 __bis_SR_register(GIE);  // Enable global interrupts
@@ -82,43 +83,89 @@ __bis_SR_register(GIE);  // Enable global interrupts
             switch(relock){
                 case 0: UCB1I2CSA = 0x0069; Packet[0]=0x00; SetOnce=1; UCB1CTLW0 |= UCTXSTT; 
 	                    for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        break;
 
                 case 1: UCB1I2CSA = 0x0069; Packet[0]=0x01; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 1;
+                            window_size_unset = 0;
+                         }
+                        break;
 
                 case 2: UCB1I2CSA = 0x0069; Packet[0]=0x02; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT;
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 2;
+                             window_size_unset = 0;
+                         }
+                        break;
                         
                 case 3: UCB1I2CSA = 0x0069; Packet[0]=0x03; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 3;
+                            window_size_unset = 0;
+                         }
+                        break;
 
                 case 4: UCB1I2CSA = 0x0069; Packet[0]=0x04; SetOnce=1; UCB1CTLW0 |= UCTXSTT;
                         for(i=0; i<100; i++){} UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 4;
+                             window_size_unset = 0;
+                         }
+                        break;
 
                 case 5: UCB1I2CSA = 0x00E; Packet[0] = 0x5; UCB1CTLW0 |= UCTXSTT;
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 5;
+                            window_size_unset = 0;
+                         }
+                        break;
 
                 case 6: UCB1I2CSA = 0x00E; Packet[0] = 0x6; UCB1CTLW0 |= UCTXSTT;
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 6;
+                            window_size_unset = 0;
+                         }
+                        break;
 
                 case 7: UCB1I2CSA = 0x00E; Packet[0] = 0x7; UCB1CTLW0 |= UCTXSTT;
-                        rgb_control(2); __delay_cycles(500000); break;
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 7;
+                            window_size_unset = 0;
+                         }
+                        break;
 
                 case 8: UCB1I2CSA = 0x00E; Packet[0] = 0x8; UCB1CTLW0 |= UCTXSTT;
-                        rgb_control(2); __delay_cycles(500000); break;                
+                        rgb_control(2); __delay_cycles(500000); 
+                        if(window_size_unset == 1){
+                            window_size = 8;
+                            window_size_unset = 0;
+                         }
+                        break;                
 
                 case 9:  Packet[0]=0x9; SetOnce=1;
                           UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
-                         rgb_control(2); __delay_cycles(500000); break;
+                         rgb_control(2); __delay_cycles(500000); 
+                         if(window_size_unset == 1){
+                            window_size = 9;
+                            window_size_unset = 0;
+                         }
+                         break;
 
                 case 0xA: Packet[0]=0xA; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT;
                           rgb_control(2); __delay_cycles(500000);
-                          while(relock==0xA){relock = led_pattern();} 
+                          window_size_unset = 1;
                           break;
 
                 case 0xB: Packet[0]=0xB; SetOnce=1; UCB1I2CSA = 0x00E; UCB1CTLW0 |= UCTXSTT; 
@@ -167,10 +214,10 @@ __interrupt void ADC_ISR(void)
 {
     adc_value = ADCMEM0;  // Read ADC result
 
-    // Calibration factor to map 495 to room temp
-    float calibration_factor = 20.0 / 2100.0;
+    // Calibration factor to map 2047 to room temp
+    float calibration_factor = 20.05 / 2047.0;
 
     temperature_C = adc_value * calibration_factor; // Scale ADC value to C
-    send_temp=add_temperature_value(temperature_C);
+    send_temp = add_temperature_value(temperature_C);
 
 }

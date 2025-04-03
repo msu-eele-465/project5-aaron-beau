@@ -41,6 +41,15 @@
                 "name": "controller",
                 "resourceId": "/controller"
             }
+        },
+        {
+            "name": "controller (1)",
+            "type": "ccs-debug",
+            "request": "launch",
+            "projectInfo": {
+                "name": "controller",
+                "resourceId": "/controller/app"
+            }
         }
     ]
 }

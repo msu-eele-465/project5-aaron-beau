@@ -28,14 +28,15 @@ void controller_init(){
 
 
    
-//----------------------------Timer_A Initialization----------------------------
-    TB0CCTL0 = CCIE;  // Enable Timer_B interrupt
-    TB0CCR0 = 500000; // 1MHz / 2 = 0.5s
-    TB0CTL = TBSSEL_2 | MC_1 | ID_0 | TBCLR;  // SMCLK, up mode, no division
+//----------------------------Timer_B Initialization----------------------------
+    TB0CCTL0 = CCIE;         // Enable Timer_B interrupt
+    TB0CCR0 = 62500;         // 125kHz / 2 = 0.5s interval
+    TB0CTL |= TBSSEL_2;      // Select SMCLK (1 MHz) 
+    TB0CTL |= MC_1;          // Set Timer_B to Up Mode 
+    TB0CTL |= ID_3;          // Set input divider to 8 
+    TB0CTL |= TBCLR;         // Clear Timer
    
-
-
-    //------------------------------- I2C Initialization -----------------------------    
+//------------------------------- I2C Initialization -----------------------------    
     UCB1CTLW0 |= UCSWRST;                      // UCSWRST =1 for eUSCI_B1 in SW reset
 	
 //--Configure eUSCI_B1
