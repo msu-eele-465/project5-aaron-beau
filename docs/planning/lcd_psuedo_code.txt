@@ -1,0 +1,15 @@
+Initially Clear LCD screen
+
+wait for an user input mode to be entered
+
+If A is selected
+	The LCD will display "set window size"
+enter while loop waiting for value to be entered
+	display window size is bottom right corner
+
+If B is selected
+	LCD will display "set pattern"
+enter while loop waiting for value to be entered
+	display pattern name
+
+Constantly check for temperature update to be displayed 
