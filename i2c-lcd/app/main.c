@@ -114,7 +114,7 @@ int main(void)
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
-            LCDprint(period, 1);
+            LCD_print(period, 1);
             temp_received = 0;
         }
 
