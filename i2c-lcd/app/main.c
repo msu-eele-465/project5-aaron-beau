@@ -32,7 +32,10 @@ int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
 volatile int temperature;
-volatile int temp_received = 0;
+volatile int temp_incoming = 0;
+volatile int whole_number;
+volatile int decimal;
+volatile int print_temperature;
 
 
 int main(void)
@@ -111,12 +114,12 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
-        if(temp_received == 1){
+        if(print_temperature == 1){
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
             LCD_print(period, 1);
-            temp_received = 0;
+            print_temperature = 0;
         }
 
 
@@ -142,12 +145,7 @@ __interrupt void EUSCI_B0_ISR(void)
             if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
-            }else if(RXDATA > 0xB){
-                temperature = RXDATA;
-                temp_received = 1;
-
             }
-            
             break;
 
         case 0x12:  // UCSTPIFG: Stop condition detected
