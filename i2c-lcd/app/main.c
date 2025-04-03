@@ -54,6 +54,7 @@ int main(void)
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
         LCD_print(set_window_size, 15);                     // Print "set window size"
+        LCD_clear_first_line();
             RXDATA = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for window size from user
                 if(RXDATA != 0){                            //enter when a valid value has been chosen
