@@ -33,19 +33,11 @@ void ADC_init(){
     
 }
 
-void Convert_and_Send_Float(float value) {
-    int whole = (int)value;              // Get whole number part
-    int decimal = (int)((value - whole) * 10);  // Get first decimal digit
-    char Packet[] = {0x00};
+void Send_ADC(int value) {
+   char Packet[] = {0x00};
 
     //Send C to notify slave that temperature data is coming
-    UCB1I2CSA = 0x00E; Packet[0] = 0xC; UCB1CTLW0 |= UCTXSTT;
-
-    //send the whole number
-    UCB1I2CSA = 0x00E; Packet[0] = whole; UCB1CTLW0 |= UCTXSTT;
-
-    //send the decimal number 
-    UCB1I2CSA = 0x00E; Packet[0] = decimal; UCB1CTLW0 |= UCTXSTT;
+    UCB1I2CSA = 0x00E; Packet[0] = value; UCB1CTLW0 |= UCTXSTT;
 
 }
 

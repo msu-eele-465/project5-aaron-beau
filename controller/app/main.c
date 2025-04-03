@@ -32,7 +32,7 @@ int SetOnce=1;                                  // Variable to trigger Tx once
 int window_size = 3;
 int window_size_unset;
 //---------------------- i2c Variables -----------------------------------------
-char Packet[] = {0x00};                         // Tx Packet
+volatile char Packet[] = {0x00};                         // Tx Packet
 int Data_Cnt = 0;                               // Used for multiple bytes sent
 int i;                                          // Delay counter variable
 //---------------------- ADC Variables -----------------------------------------
@@ -206,8 +206,9 @@ __interrupt void USCI_B1_ISR(void) {
 // Timer_B ISR - Triggers ADC every 0.5s
 #pragma vector = TIMER0_B0_VECTOR
 __interrupt void Timer_B_ISR(void) {
-    
+   if(locked == 0){
     ADCCTL0 |= ADCENC | ADCSC;  // Start ADC conversion
+   }
     TB0CCTL0 &= ~CCIFG;  // Clear interrupt flag
 }
 
@@ -236,9 +237,8 @@ __interrupt void ADC_ISR(void)
 
     // Calculate rolling average temperature (once enough samples are collected)
     if (samples_collected == window_size) {
-        float conversion_factor = 20.05 / 2047.0;  // Scale factor
-        temperature_C = (adc_sum / (float)window_size) * conversion_factor;
-        Convert_and_Send_Float(temperature_C);
+        adc_sum = adc_sum / 100;
+        Send_ADC(adc_sum);
     
     }
 
