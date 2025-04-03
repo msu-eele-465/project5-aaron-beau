@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include "intrinsics.h"
 #include "msp430fr2355.h"
-#include "controller_control.h"
+#include "src/controller_control.h"
 #include "src/keypad_scan.h"
 #include "src/rgb_control.h"
 #include "src/controller_control.h"
