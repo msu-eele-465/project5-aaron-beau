@@ -27,23 +27,11 @@ void controller_init(){
     P6OUT |= BIT6;      // Clear P16 output latch for a defined power-on state
 
 //----------------------------ADC Initialization------------------------------
-    ADCCTL0 |= ADCSHT_2 | ADCON;               // Sample and hold time, ADC ON
-    ADCCTL1 |= ADCSHP;                         // Use sampling timer
-    ADCCTL2 |= ADCRES_2;                       // 12-bit resolution
-    ADCMCTL0 |= ADCINCH_8 | ADCSREF_0;
-    ADCIE |= ADCIE0;                           // Enable ADC interrupt
-
-    P5SEL1 |= BIT0;  // Set P5.0 as ADC input
-    P5SEL0 |= BIT0;
-
-//----------------------------Timer_B Initialization----------------------------
-    TB0CTL |= TBCLR;                           // Clear timer
-    TB0CTL |= TBSSEL__SMCLK;                   // Select SMCLK (1 MHz)
-    TB0CTL |= MC__UP;                          // Set mode to "up"
-    TB0CTL |= ID__4;                           // Divide clock by 4
-    TB0CCR0 = 124999;                          // Set overflow period to ~0.5s (250kHz * 0.5s)
-    TB0CTL |= TBIE;                            // Enable Timer Overflow Interrupt
-    TB0CTL &= ~TBIFG;                          // Clear pending interrupt flag
+   
+//----------------------------Timer_A Initialization----------------------------
+    TB0CCTL0 = CCIE;  // Enable Timer_B interrupt
+    TB0CCR0 = 500000; // 1MHz / 2 = 0.5s
+    TB0CTL = TBSSEL_2 | MC_1 | ID_0 | TBCLR;  // SMCLK, up mode, no division
     __enable_interrupt();                      // Enable global interrupts
 
 

@@ -17,8 +17,6 @@
 #include <msp430.h>
 #include <stdint.h>
 #include "intrinsics.h"
-#include "msp430fr2355.h"
-#include "src/controller_control.h"
 #include "src/keypad_scan.h"
 #include "src/rgb_control.h"
 #include "src/controller_control.h"
@@ -48,7 +46,9 @@ int main(void) {
 controller_init();
 controller_i2c_init();
 init_moving_average();
-__bis_SR_register(GIE);  // Enable global interrupts
+ADC_init();
+//__bis_SR_register(GIE);  // Enable global interrupts
+__enable_interrupt();
 
     PM5CTL0 &= ~LOCKLPM5;  // Disable Low power mode
 //------------------------ End Initialization ----------------------------------
@@ -154,14 +154,13 @@ __interrupt void USCI_B1_ISR(void) {
         Data_Cnt++;
     }
 }
-/*ISR to trigger ADC read every 0.5s*/
-#pragma vector = TIMER0_B1_VECTOR
-__interrupt void ISR_TB0_OVERFLOW(void)
-{    
-         ADCCTL0 |= ADCENC | ADCSC;            // Enable temp read
-         TB0CTL &= ~TBIFG;                     // Clear interrupt flag
-
+// Timer_B ISR - Triggers ADC every 0.5s
+#pragma vector = TIMER0_B0_VECTOR
+__interrupt void Timer_B_ISR(void) {
+    TB0CCTL0 &= ~CCIFG;  // Clear interrupt flag
+    ADCCTL0 |= ADCENC | ADCSC;  // Start ADC conversion
 }
+
 /*IRS for reading ADC temperature*/
 #pragma vector = ADC_VECTOR
 __interrupt void ADC_ISR(void)
@@ -169,7 +168,7 @@ __interrupt void ADC_ISR(void)
     adc_value = ADCMEM0;  // Read ADC result
 
     // Calibration factor to map 495 to room temp
-    float calibration_factor = 20.0 / 495.0;
+    float calibration_factor = 20.0 / 2100.0;
 
     temperature_C = adc_value * calibration_factor; // Scale ADC value to C
     send_temp=add_temperature_value(temperature_C);
