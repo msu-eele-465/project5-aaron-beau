@@ -1,84 +1,158 @@
-/* --COPYRIGHT--,BSD_EX
- * Copyright (c) 2014, Texas Instruments Incorporated
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *******************************************************************************
- *
- *                       MSP430 CODE EXAMPLE DISCLAIMER
- *
- * MSP430 code examples are self-contained low-level programs that typically
- * demonstrate a single peripheral function or device feature in a highly
- * concise manner. For this the code may rely on the device's power-on default
- * register values and settings such as the clock configuration and care must
- * be taken when combining code from several examples to avoid potential side
- * effects. Also see www.ti.com/grace for a GUI- and www.ti.com/msp430ware
- * for an API functional library-approach to peripheral configuration.
- *
- * --/COPYRIGHT--*/
-//******************************************************************************
-//  MSP430FR231x Demo - Toggle P1.0 using software
-//
-//  Description: Toggle P1.0 every 0.1s using software.
-//  By default, FR231x select XT1 as FLL reference.
-//  If XT1 is present, the PxSEL(XIN & XOUT) needs to configure.
-//  If XT1 is absent, switch to select REFO as FLL reference automatically.
-//  XT1 is considered to be absent in this example.
-//  ACLK = default REFO ~32768Hz, MCLK = SMCLK = default DCODIV ~1MHz.
-//
-//           MSP430FR231x
-//         ---------------
-//     /|\|               |
-//      | |               |
-//      --|RST            |
-//        |           P1.0|-->LED
-//
-//   Darren Lu
-//   Texas Instruments Inc.
-//   July 2015
-//   Built with IAR Embedded Workbench v6.30 & Code Composer Studio v6.1 
-//******************************************************************************
+
 #include <msp430.h>
+#include "lcd_control.h"
+//"N ="
+const char window_size[2] = {0b01001110, 0b00111101};
+//"set window size"
+const char set_window_size[15] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110111, 0b01101001, 0b01101110, 0b01100100, 0b01101111, 0b01110111, 0b00010000, 0b01110011, 0b01101001, 0b01111010, 0b01100101};
+//"set pattern"
+const char set_pattern[11] = {0b01110011, 0b01100101, 0b01110100, 0b00010000, 0b01110000, 0b01100001, 0b01110100, 0b01110100, 0b01100101, 0b01110010, 0b01101110};
+///"static"
+const char pattern_static[6] = {0b01110011, 0b01110100, 0b01100001, 0b01110100, 0b01101001, 0b01100011};
+//"toggle"
+const char pattern_toggle[6] = {0b01110100, 0b01101111, 0b01100111, 0b01100111, 0b01101100, 0b01100101};
+//"up counter"
+const char pattern_up_counter[10] = {0b01110101, 0b01110000, 0b00010000, 0b01100011, 0b01101111, 0b01110101, 0b01101110, 0b01110100, 0b01100101, 0b01110010};
+//"in and out"
+const char pattern_in_and_out[10] = {0b01101001, 0b01101110, 0b00010000, 0b01100001, 0b01101110, 0b01100100, 0b00010000, 0b01101111, 0b01110101, 0b01110100};
+//numbers 0-9
+const char n_size[10] = {0b00110000, 0b00110001, 0b00110010, 0b00110011, 0b00110100, 0b00110101, 0b00110110, 0b00110111, 0b00111000, 0b00111001};    
+//"T="
+const char T_equals[2] = {0b01010100, 0b00111101};
+//"degree C"
+const char degree_C[2] = {0b11011111, 0b01000011};      
+//"."
+const char period[1] = {0b00101110};    
+                        
+unsigned int i;
+int user_mode;
+volatile int RXDATA;
+int wait;
+int user_size = 3;
+int pattern_number = 0;
+int print_window_size = 1;
+volatile int temperature;
+volatile int temp_received = 0;
+
 
 int main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
 
-    P1OUT &= ~BIT0;                         // Clear P1.0 output latch for a defined power-on state
-    P1DIR |= BIT0;                          // Set P1.0 to output direction
-
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
-
+    LCD_init();
+    LCD_setup();
     while(1)
     {
-        P1OUT ^= BIT0;                      // Toggle P1.0 using exclusive-OR
+
+        if(RXDATA == 0){
+            LCD_Clear();
+        }
+
+        //USER MODE SELECT WINDOW SIZE
+        if(user_mode == 0xA){                               //Window size input operation
+        LCD_clear_first_line();                             //Clear first line
+        LCD_print(set_window_size, 15);                     // Print "set window size"
+            RXDATA = 0;                                     //clear RXDATA for next transmission
+            while(wait == 1){                               //wait for window size from user
+                if(RXDATA != 0){                            //enter when a valid value has been chosen
+                    user_size = RXDATA;                  
+                    wait = 0;                               //clear wait flag
+                    user_mode = 0;                          //set user mode to zero to stop reprint
+                    print_window_size = 0;                  //set flag that window size can be printed
+                    }
+                
+                }
+            }
+        //USER MODE SELECT PATTERN
+        else if(user_mode == 0xB){                          //Pattern select operation
+            LCD_clear_first_line();                         //clear first line
+            LCD_print(set_pattern, 11);                     //Print "set pattern"
+            RXDATA = 0;                                     //clear RXDATA for next transmission
+            while(wait == 1){                               //wait for pattern to be selected
+                if(RXDATA != 0){                            //if valid pattern was selected
+                    pattern_number = RXDATA;                
+                    wait = 0;                               //clear wait flag
+                    user_mode = 0;                          //clear flag to stop rewrite
+                }
+            }
+        }
+        //DISPLAY PATTERN NAME ON FIRST LINE
+        switch(pattern_number){ 
+            case 0x1:   LCD_clear_first_line();             //clear first lline
+                        LCD_print(pattern_static, 6);       //print "static"
+                        pattern_number = 0;                 //clear to stop rewrite
+                        break;
+
+            case 0x2:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_toggle, 6);       // print "toggle"
+                        pattern_number = 0;                 //clear to stop rewrite
+                        break;
+
+            case 0x3:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_up_counter, 10);  //print "up counter"
+                        pattern_number = 0;                 //clear to stop rewrite
+                        break;
+
+            case 0x4:   LCD_clear_first_line();             //clear first line
+                        LCD_print(pattern_in_and_out, 10);  //print "in and out"
+                        pattern_number = 0;                 //clear to stop rewrite
+                        break;
+
+            default:    break;
+        }
+        //PRINT WINDOW SIZE IN BOTTOM LEFT CORNER
+        if(print_window_size == 0){
+            LCD_command(0xCD);                  //move to third to last character of second row
+            LCD_print(window_size, 2);          // print "N="
+            LCD_write(n_size[user_size]); //print number that was entered by user
+            print_window_size = 1;          //set flag that window # has been written
+        }
+
+        if(temp_received == 1){
+            LCD_command(0xC0);
+            LCD_print(T_equals, 2);
+
+            LCD_print(period, 1);
+            temp_received = 0;
+        }
+
+        
+    }   
+                
+        P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
         __delay_cycles(100000);             // Delay for 100000*(1/MCLK)=0.1s
     }
+
+//--------- I2C Receive ISR (Handles Incoming Data) ---------------------------
+/* ISR triggers upon start condition from I2C bus and receives sent data from
+ * master 
+ */
+#pragma vector = EUSCI_B0_VECTOR
+__interrupt void EUSCI_B0_ISR(void)
+{
+    switch (__even_in_range(UCB0IV, 0x1E)) {
+        case 0x16:  // UCRXIFG0: Byte received
+            RXDATA = UCB0RXBUF;  // Read received byte
+
+            if(RXDATA == 0xA || RXDATA == 0xB){       //check to see if user mode has been selected
+                user_mode = RXDATA;                   // set transmission to select user mode
+                wait = 1;                             //set flag to wait for second transmission
+            }else if(RXDATA > 0xB){
+                temperature = RXDATA;
+                temp_received = 1;
+
+            }
+            
+            break;
+
+        case 0x12:  // UCSTPIFG: Stop condition detected
+            UCB0IFG &= ~UCSTPIFG;  // Clear STOP flag
+            break;
+
+        default:
+            break;
+    }
+    
 }
