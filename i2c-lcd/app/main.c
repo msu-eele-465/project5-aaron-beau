@@ -31,8 +31,10 @@ int wait;
 int user_size = 3;
 int pattern_number = 0;
 int print_window_size = 1;
-volatile int temperature;
-volatile int temp_received = 0;
+volatile float temperature_C;
+volatile int adc_value;
+volatile float conversion_factor = (20.05 / 2047.0);  // Scale factor
+
 
 
 int main(void)
@@ -54,6 +56,7 @@ int main(void)
         if(user_mode == 0xA){                               //Window size input operation
         LCD_clear_first_line();                             //Clear first line
         LCD_print(set_window_size, 15);                     // Print "set window size"
+        LCD_clear_first_line();
             RXDATA = 0;                                     //clear RXDATA for next transmission
             while(wait == 1){                               //wait for window size from user
                 if(RXDATA != 0){                            //enter when a valid value has been chosen
@@ -110,15 +113,14 @@ int main(void)
             print_window_size = 1;          //set flag that window # has been written
         }
 
-        if(temp_received == 1){
+        if(adc_value > 0xB){
+            temperature_C = (adc_value / (float)user_size) * conversion_factor;
             LCD_command(0xC0);
             LCD_print(T_equals, 2);
 
             LCD_print(period, 1);
-            temp_received = 0;
         }
 
-        
     }   
                 
         P1OUT ^= BIT1;                      // Toggle P1.0 using exclusive-OR
@@ -140,11 +142,8 @@ __interrupt void EUSCI_B0_ISR(void)
                 user_mode = RXDATA;                   // set transmission to select user mode
                 wait = 1;                             //set flag to wait for second transmission
             }else if(RXDATA > 0xB){
-                temperature = RXDATA;
-                temp_received = 1;
-
+                RXDATA = adc_value;
             }
-            
             break;
 
         case 0x12:  // UCSTPIFG: Stop condition detected

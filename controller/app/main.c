@@ -237,7 +237,6 @@ __interrupt void ADC_ISR(void)
 
     // Calculate rolling average temperature (once enough samples are collected)
     if (samples_collected == window_size) {
-        adc_sum = adc_sum / 100;
         Send_ADC(adc_sum);
     
     }
