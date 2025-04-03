@@ -238,9 +238,8 @@ __interrupt void ADC_ISR(void)
     if (samples_collected == window_size) {
         float conversion_factor = 20.05 / 2047.0;  // Scale factor
         temperature_C = (adc_sum / (float)window_size) * conversion_factor;
+        Convert_and_Send_Float(temperature_C);
+    
     }
-    
-
-    
 
 }

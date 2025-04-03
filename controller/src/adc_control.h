@@ -6,9 +6,7 @@
 #include <stdint.h>
 
 // Function prototype
-void init_moving_average();
-float add_temperature_value(float new_temp);
-void set_moving_average_size(int new_n);
-void Convert_Float(float value);
+
+void Convert_and_Send_Float(float value);
 void ADC_init();
 #endif
